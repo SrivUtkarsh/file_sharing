@@ -12,8 +12,22 @@
         <p>
             {{ file }}
             <a href="/files/{{ file }}">[View]</a>
+
+            <button onclick="deleteFile('{{ file }}')">[Delete]</button>
         </p>
     {% endfor %}
+    <script>
+        async function deleteFile(filename){
+            const response = await fetch(`/files/${filename}`,{
+                method:"DELETE"
+            });
+            if(response.ok){
+                location.reload();
+            } else{
+                alert("Failed to delete ")
+            }
+        }
+    </script>
 
 </body>
 </html>

@@ -15,7 +15,6 @@ async def upload(file: UploadFile = File(...)):
         "filename": file.filename,
         "content_type": file.content_type
     }
-
 @app.get("/uploads")
 def FileNames():
     file_path="uploads"
@@ -32,8 +31,14 @@ async def list_files(request: Request):
             "files":files
         }
     )
-
 @app.get("/files/{filename}")
 async def view_file(filename: str):
     return FileResponse(f"uploads/{filename}")
 
+@app.delete("/files/{filename}")
+async def delete_file(filename: str):
+    file_path = f"uploads/{filename}"
+    if not os.path.exists(file_path):
+        return {"Error : File not found"}
+    os.remove(file_path)
+    return {"message": f"{filename} deleted successfully"}
