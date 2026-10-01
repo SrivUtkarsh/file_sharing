@@ -1,12 +1,12 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.responses import FileResponse
+from fastapi.templating import Jinja2Templates
 import os
-
+templates=Jinja2Templates(directory="frontend")
 app=FastAPI()
 @app.get("/")
 async def home():
     return FileResponse("frontend/upload.html")
-
 @app.post("/files/upload")
 async def upload(file: UploadFile = File(...)):
     with open(f"uploads/{file.filename}", "wb") as f:
@@ -21,3 +21,19 @@ def FileNames():
     file_path="uploads"
     entries=os.listdir(file_path)
     return entries
+@app.get("/files")
+async def list_files(request: Request):
+    files= os.listdir("uploads")
+    return templates.TemplateResponse(
+        request=request,
+        name="view.html",
+        context=
+        {
+            "files":files
+        }
+    )
+
+@app.get("/files/{filename}")
+async def view_file(filename: str):
+    return FileResponse(f"uploads/{filename}")
+
