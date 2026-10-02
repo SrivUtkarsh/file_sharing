@@ -34,7 +34,6 @@ async def list_files(request: Request):
 @app.get("/files/{filename}")
 async def view_file(filename: str):
     return FileResponse(f"uploads/{filename}")
-
 @app.delete("/files/{filename}")
 async def delete_file(filename: str):
     file_path = f"uploads/{filename}"
@@ -42,3 +41,15 @@ async def delete_file(filename: str):
         return {"Error : File not found"}
     os.remove(file_path)
     return {"message": f"{filename} deleted successfully"}
+@app.post("/folders")
+def folder_creation(name: str):
+    folder_path = os.path.join("uploads",f"{name}")
+    if os.path.exists(folder_path):
+        return {
+            "message": "folder already exists"
+        }
+    os.mkdir(folder_path)
+    return {
+        "message":"Folder created successfully",
+        "name": name
+    }
