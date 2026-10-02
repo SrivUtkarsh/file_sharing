@@ -1,12 +1,15 @@
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
-from models.schemas import FolderRequest
+from models.schemas import FolderRequest,UserCreate
+from db import engine
+from models.db_models import Base
 import os
 folders= [] 
 folder_id = 1
 templates=Jinja2Templates(directory="frontend")
 app=FastAPI()
+Base.metadata.create_all(bind=engine)
 @app.get("/")
 async def home():
     return FileResponse("frontend/upload.html")
@@ -61,3 +64,6 @@ def create_folder(folder: FolderRequest):
     }
     folders.append(new_folder)
     folder_id+=1
+@app.post("/register")
+async def register(user : UserCreate):
+       
