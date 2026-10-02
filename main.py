@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from models.schemas import FolderRequest
 import os
 folders= [] 
+folder_id = 1
 templates=Jinja2Templates(directory="frontend")
 app=FastAPI()
 @app.get("/")
@@ -43,15 +44,20 @@ async def delete_file(filename: str):
         return {"Error : File not found"}
     os.remove(file_path)                 
     return {"message": f"{filename} deleted successfully"}
-@app.post("/folders/create")
-def folder_creation(name: str):
-    folder_path = os.path.join("uploads",f"{name}")
-    if os.path.exists(folder_path):
-        return {
-            "message": "folder already exists"
-        }
-    os.mkdir(folder_path)
-    return {
-        "message":"Folder created successfully",
-        "name": name
+@app.post("/folders")
+def create_folder(folder: FolderRequest):
+    global folder_id
+    if folder.parent_id is not None:
+        parent = next(
+            (f for f in folders if f["id"] == folder.parent_id),
+            None
+        )
+        if parent is None:
+            return {"error": "Parent folder was not found"}
+    new_folder = {
+        "id":folder_id,
+        "name":folder.name,
+        "parent_id":folder.parent_id
     }
+    folders.append(new_folder)
+    folder_id+=1
