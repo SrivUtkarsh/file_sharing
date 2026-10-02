@@ -1,7 +1,9 @@
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
+from models.schemas import FolderRequest
 import os
+folders= [] 
 templates=Jinja2Templates(directory="frontend")
 app=FastAPI()
 @app.get("/")
@@ -39,9 +41,9 @@ async def delete_file(filename: str):
     file_path = f"uploads/{filename}"
     if not os.path.exists(file_path):
         return {"Error : File not found"}
-    os.remove(file_path)
+    os.remove(file_path)                 
     return {"message": f"{filename} deleted successfully"}
-@app.post("/folders")
+@app.post("/folders/create")
 def folder_creation(name: str):
     folder_path = os.path.join("uploads",f"{name}")
     if os.path.exists(folder_path):
