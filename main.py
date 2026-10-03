@@ -2,9 +2,11 @@ from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 from models.schemas import FolderRequest,UserCreate
-from db import engine
-from models.db_models import Base
+from db import engine,SessionLocal
+from security import password_hash
+from models.db_models import Base,User
 import os
+db = SessionLocal()
 folders= [] 
 folder_id = 1
 templates=Jinja2Templates(directory="frontend")
@@ -64,3 +66,25 @@ def create_folder(folder: FolderRequest):
     }
     folders.append(new_folder)
     folder_id+=1
+@app.post("/register")
+async def register(user: UserCreate):
+    db = SessionLocal()
+    existing_user = db.query(User).filter(
+        User.username == user.username
+    ).first()
+
+    if existing_user:
+        return {"error": "Username already exists"}
+
+    hashed_password = password_hash.hash(user.password)
+
+    new_user = User(
+        username=user.username,
+        password_hash=hashed_password
+    )
+    db.add(new_user)
+    db.commit()
+    return {
+        "message": "User registered successfully",
+        "username": new_user.username
+    }
