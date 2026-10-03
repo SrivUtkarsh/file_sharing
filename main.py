@@ -1,9 +1,9 @@
-from fastapi import FastAPI, UploadFile, File, Request
+from fastapi import FastAPI, UploadFile, File, Request, Depends
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
-from models.schemas import FolderRequest,UserCreate
+from models.schemas import FolderRequest,UserCreate,UserLogin
 from db import engine,SessionLocal
-from security import password_hash
+from security import password_hash, create_access_token
 from models.db_models import Base,User
 import os
 db = SessionLocal()
@@ -77,7 +77,6 @@ async def register(user: UserCreate):
         return {"error": "Username already exists"}
 
     hashed_password = password_hash.hash(user.password)
-
     new_user = User(
         username=user.username,
         password_hash=hashed_password
@@ -87,4 +86,24 @@ async def register(user: UserCreate):
     return {
         "message": "User registered successfully",
         "username": new_user.username
+    }
+    
+@app.post("/login")
+async def login(user_data: UserLogin):
+    db = SessionLocal()
+    user = db.query(User).filter(
+        User.username == user_data.username
+    ).first()
+    if not user:
+        return {"error":"Invalid username or passsword"}
+    if not password_hash.verify(
+        user_data.password,
+        user.password_hash
+    ):
+        
+        return {"error":"Invalid username or password"}
+    token = create_access_token(user.id)
+    return {
+        "access_token":token,
+        "token_type": "bearer"
     }
