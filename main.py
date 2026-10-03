@@ -64,6 +64,3 @@ def create_folder(folder: FolderRequest):
     }
     folders.append(new_folder)
     folder_id+=1
-@app.post("/register")
-async def register(user : UserCreate):
-       
