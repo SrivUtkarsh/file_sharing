@@ -1,14 +1,13 @@
 from fastapi import FastAPI, UploadFile, File, Request, Depends
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse 
 from fastapi.templating import Jinja2Templates
-from models.schemas import FolderRequest,UserCreate,UserLogin
+from models.schemas import UserCreate,UserLogin
 from db import engine,SessionLocal
 from security import password_hash, create_access_token
 from models.db_models import Base,User
 import os
 db = SessionLocal()
-folders= [] 
-folder_id = 1
+
 templates=Jinja2Templates(directory="frontend")
 app=FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -49,33 +48,15 @@ async def delete_file(filename: str):
         return {"Error : File not found"}
     os.remove(file_path)                 
     return {"message": f"{filename} deleted successfully"}
-@app.post("/folders")
-def create_folder(folder: FolderRequest):
-    global folder_id
-    if folder.parent_id is not None:
-        parent = next(
-            (f for f in folders if f["id"] == folder.parent_id),
-            None
-        )
-        if parent is None:
-            return {"error": "Parent folder was not found"}
-    new_folder = {
-        "id":folder_id,
-        "name":folder.name,
-        "parent_id":folder.parent_id
-    }
-    folders.append(new_folder)
-    folder_id+=1
+
 @app.post("/register")
 async def register(user: UserCreate):
     db = SessionLocal()
     existing_user = db.query(User).filter(
         User.username == user.username
     ).first()
-
     if existing_user:
         return {"error": "Username already exists"}
-
     hashed_password = password_hash.hash(user.password)
     new_user = User(
         username=user.username,
@@ -87,7 +68,6 @@ async def register(user: UserCreate):
         "message": "User registered successfully",
         "username": new_user.username
     }
-    
 @app.post("/login")
 async def login(user_data: UserLogin):
     db = SessionLocal()
@@ -100,7 +80,6 @@ async def login(user_data: UserLogin):
         user_data.password,
         user.password_hash
     ):
-        
         return {"error":"Invalid username or password"}
     token = create_access_token(user.id)
     return {
