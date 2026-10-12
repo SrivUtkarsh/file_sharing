@@ -6,6 +6,8 @@ from db import engine,SessionLocal
 from security import password_hash, create_access_token
 from models.db_models import Base,User
 import os
+from uuid import uuid4
+from storage import upload_file
 db = SessionLocal()
 
 templates=Jinja2Templates(directory="frontend")
@@ -14,14 +16,7 @@ Base.metadata.create_all(bind=engine)
 @app.get("/")
 async def home():
     return FileResponse("frontend/upload.html")
-@app.post("/files/upload")
-async def upload(file: UploadFile = File(...)):
-    with open(f"uploads/{file.filename}", "wb") as f:
-        f.write(await file.read())
-    return {
-        "filename": file.filename,
-        "content_type": file.content_type
-    }
+
 @app.get("/uploads")
 def FileNames():
     file_path="uploads"
@@ -86,3 +81,18 @@ async def login(user_data: UserLogin):
         "access_token":token,
         "token_type": "bearer"
     }
+@app.post("/files/upload")
+async def upload(file:UploadFile=File(...)):
+    object_key=f"files/{uuid4().hex}"
+    upload_file(
+        file.file,
+        object_key,
+        file.content_type
+    )
+    return {
+        "filename":file.filename,
+        "object_key":object_key,
+        "content_type":file.content_type,
+        "message":"File Uplaoded successfully"
+    }
+    

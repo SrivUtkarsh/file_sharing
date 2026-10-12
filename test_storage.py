@@ -21,3 +21,4 @@ result = s3.get_object(
 )
 content = result["Body"].read().decode("utf-8")
 print("Downloaded content:", content)
+
