@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Request, Depends
 from fastapi.responses import FileResponse 
 from fastapi.templating import Jinja2Templates
 from models.schemas import UserCreate,UserLogin
-from db import engine,SessionLocal
+from db import engine,SessionLocal,get_db
 from security import password_hash, create_access_token
 from models.db_models import Base,User
 import os
@@ -45,8 +45,7 @@ async def delete_file(filename: str):
     return {"message": f"{filename} deleted successfully"}
 
 @app.post("/register")
-async def register(user: UserCreate):
-    db = SessionLocal()
+def register(user: UserCreate, db=Depends(get_db)):
     existing_user = db.query(User).filter(
         User.username == user.username
     ).first()
@@ -64,8 +63,7 @@ async def register(user: UserCreate):
         "username": new_user.username
     }
 @app.post("/login")
-async def login(user_data: UserLogin):
-    db = SessionLocal()
+async def login(user_data: UserLogin,db=Depends(get_db)):
     user = db.query(User).filter(
         User.username == user_data.username
     ).first()
@@ -92,7 +90,7 @@ async def upload(file:UploadFile=File(...)):
     return {
         "filename":file.filename,
         "object_key":object_key,
+     
         "content_type":file.content_type,
         "message":"File Uplaoded successfully"
     }
-    
